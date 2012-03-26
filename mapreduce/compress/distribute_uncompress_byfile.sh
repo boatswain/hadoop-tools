@@ -2,8 +2,9 @@
 #
 # Gzip compress HDFS Files use MapReduce.
 # Notice: 
-#    1. Compress output director shouldn't supposed to exists.
+#    1. Compress output directory shouldn't supposed to exists.
 #    2. core-site.xml should be provided and must speicify property of hadoop.job.ugi and fs.default.name.
+#    3. make sure hdfs://clustername/tmp/uncompress_tmp/ has exists, and has read-write permissions.
 #
 #
 # For Example:
@@ -33,7 +34,7 @@ export JAVA_HOME="/home/mapred/hadoop-v2/java6"
 HADOOP_HOME="/home/mapred/hadoop-v2/hadoop"
 HADOOP_BIN="${HADOOP_HOME}/bin/hadoop --config ./core-site.xml"
 MAPRED_JOB_TMP_DIR="/tmp/uncompress_tmp/"
-LOCAL_LSR_TMP_FILE="lsr_tmp_$RANDOM"
+LOCAL_LSR_TMP_FILE="file_list_${RANDOM}_`date +%Y%m%d%H%M%S`"
 MAPRED_OUTPUT_DIR="${MAPRED_JOB_TMP_DIR}/${LOCAL_LSR_TMP_FILE}_output"
 TODAY=`date "+%Y-%m-%d"`
 
