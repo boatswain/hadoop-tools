@@ -21,4 +21,23 @@
     <description></description>
 </property>
 
+<property>
+    <name>mapred.job.tracker</name>
+    <value>192.168.100.44:64310</value>
+    <description>The host and port that the MapReduce job tracker runs
+    at.  If "local", then jobs are run in-process as a single map
+    and reduce task.
+    </description>
+</property>
+
+<property>
+    <name>mapred.local.dir</name>
+    <value>/tmp</value>
+    <description>The local directory where MapReduce stores intermediate
+    data files.  May be a comma-separated list of
+    directories on different devices in order to spread disk i/o.
+    Directories that do not exist are ignored.
+    </description>
+</property>
+
 </configuration>

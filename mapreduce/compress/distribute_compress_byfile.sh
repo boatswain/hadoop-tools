@@ -30,22 +30,25 @@
 # Site: 
 #
 
-export JAVA_HOME="/home/mapred/hadoop-v2/java6"
-HADOOP_HOME="/home/mapred/hadoop-v2/hadoop"
+export JAVA_HOME="$HOME/hadoop-v2/java6"
+MAIL_LIST="fengzanfeng@wandoujia.com,zhoupo@wandoujia.com"
+HADOOP_HOME="$HOME/hadoop-v2/hadoop"
 HADOOP_BIN="${HADOOP_HOME}/bin/hadoop --config ./core-site.xml"
 MAPRED_JOB_TMP_DIR="/tmp/compress_tmp/"
 LOCAL_LSR_TMP_FILE="file_list_${RANDOM}_`date +%Y%m%d%H%M%S`"
 MAPRED_OUTPUT_DIR="${MAPRED_JOB_TMP_DIR}/${LOCAL_LSR_TMP_FILE}_output"
 COMPRESS_FORMAT="gzip"
+DELETE_SOURCE="false"
 TODAY=`date "+%Y-%m-%d"`
 
 
 
 function usage() {
     echo ""
-    echo "./distribute_compress_byfile.sh <input path> <output path> [compress format] [mapred job capacity] [mapred job priority]" >&2
+    echo "./distribute_compress_byfile.sh <input path> <output path> <delete source> [compress format] [mapred job capacity] [mapred job priority]" >&2
     echo "input path:              input path ready going to be compress" >&2
     echo "output path:             where the compressed file storage" >&2
+    echo "delete source:           delete input soure where compress success" >&2
     echo "compress format:         gzip. gzip(default)" >&2
     echo "mapred job capacity:     mapred job capacity. 3 (default)" >&2
     echo "mapred job priority:     mapred job priority. VERY_LOW (default)" >&2
@@ -100,6 +103,7 @@ function check_result() {
     echo "input file num: ${INPUT_FILE_NUM}, output file num: ${OUTPUT_FILE_NUM}"
     if [ ${INPUT_FILE_NUM} -ne ${OUTPUT_FILE_NUM} ];then
         echo "[FATAL] input file num not equals output file num."
+        echo "`date '+%Y-%m-%d %H:%M:%S'` run compress job failed. retcode=${ret_code}" | mail -s "compress job failed." ${MAIL_LIST}
         exit 1
     fi
 
@@ -107,12 +111,21 @@ function check_result() {
     echo "expected sucess num: ${INPUT_FILE_NUM} actual success num: ${SUCCESS_TASK_NUM}"
     if [ ${SUCCESS_TASK_NUM} -ne ${INPUT_FILE_NUM} ];then
         echo "[FATAL] some task failed, please check ${MAPRED_OUTPUT_DIR}"
+        echo "`date '+%Y-%m-%d %H:%M:%S'` run compress job failed. retcode=${ret_code}" | mail -s "compress job failed." ${MAIL_LIST}
         exit 1
     fi
 }
 
+function delete_source() {
+    if [ $DELETE_SOURCE == "true" ];then
+        echo "delete input source: ${INPUT_PATH} starts..."
+        ${HADOOP_BIN} fs -rmr ${INPUT_PATH}
+        echo "delete input source: ${INPUT_PATH} success"
+    fi
+}
+
 # check parameter
-if [ $# -lt 2 ];then
+if [ $# -lt 3 ];then
     usage
 fi
 
@@ -120,21 +133,23 @@ fi
 INPUT_PATH=$1
 # the path for compress output
 OUTPUT_PATH=$2
+# delete input source
+DELETE_SOURCE=#3
 
-if [ ! -z $3 ];then
-    COMPRESS_FORMAT=$3
+if [ ! -z $4 ];then
+    COMPRESS_FORMAT=$4
 fi
 check_compress_format ${COMPRESS_FORMAT}
 
 # mapreduce job para
 MAP_TASK_CAPACITY=3
 JOB_PRIORITY="VERY_LOW"
-if [ ! -z $4 ];then
-    MAP_TASK_CAPACITY=$4
+if [ ! -z $5 ];then
+    MAP_TASK_CAPACITY=$5
 fi
 
-if [ ! -z $5 ];then
-    JOB_PRIORITY=$5
+if [ ! -z $6 ];then
+    JOB_PRIORITY=$6
 fi
 
 # check hdfs input/output path
@@ -163,13 +178,14 @@ ${HADOOP_HOME}/bin/hadoop jar ${HADOOP_HOME}/contrib/streaming/hadoop-streaming-
 ret_code=$?
 if [ ${ret_code} -ne 0 ];then
     echo "`date '+%Y-%m-%d %H:%M:%S'` run job failed."
-    echo "`date '+%Y-%m-%d %H:%M:%S'` run job failed. retcode=${ret_code}" | mail -s "run job failed." ${MAIL_LIST}
+    echo "`date '+%Y-%m-%d %H:%M:%S'` run compress job failed. retcode=${ret_code}" | mail -s "compress job failed." ${MAIL_LIST}
     exit 1
 else
     echo "`date '+%Y-%m-%d %H:%M:%S'` run job successful"
 fi
 
-# check result
+# check result, exit with 1 when check failed.
 check_result
 
-
+# delete input source when compress successful.
+delete_source

@@ -30,15 +30,14 @@
 # Site: 
 #
 
-export JAVA_HOME="/home/mapred/hadoop-v2/java6"
-HADOOP_HOME="/home/mapred/hadoop-v2/hadoop"
+export JAVA_HOME="$HOME/hadoop-v2/java6"
+MAIL_LIST="fengzanfeng@wandoujia.com,zhoupo@wandoujia.com"
+HADOOP_HOME="$HOME/hadoop-v2/hadoop"
 HADOOP_BIN="${HADOOP_HOME}/bin/hadoop --config ./core-site.xml"
 MAPRED_JOB_TMP_DIR="/tmp/uncompress_tmp/"
 LOCAL_LSR_TMP_FILE="file_list_${RANDOM}_`date +%Y%m%d%H%M%S`"
 MAPRED_OUTPUT_DIR="${MAPRED_JOB_TMP_DIR}/${LOCAL_LSR_TMP_FILE}_output"
 TODAY=`date "+%Y-%m-%d"`
-
-
 
 function usage() {
     echo ""
@@ -90,6 +89,7 @@ function check_result() {
     echo "input file num: ${INPUT_FILE_NUM}, output file num: ${OUTPUT_FILE_NUM}"
     if [ ${INPUT_FILE_NUM} -ne ${OUTPUT_FILE_NUM} ];then
         echo "[FATAL] input file num not equals output file num."
+        echo "`date '+%Y-%m-%d %H:%M:%S'` uncompress job failed. retcode=${ret_code}" | mail -s "uncompress job failed." ${MAIL_LIST}
         exit 1
     fi
 
@@ -97,6 +97,7 @@ function check_result() {
     echo "expected sucess num: ${INPUT_FILE_NUM} actual success num: ${SUCCESS_TASK_NUM}"
     if [ ${SUCCESS_TASK_NUM} -ne ${INPUT_FILE_NUM} ];then
         echo "[FATAL] some task failed, please check ${MAPRED_OUTPUT_DIR}"
+        echo "`date '+%Y-%m-%d %H:%M:%S'` uncompress job failed. retcode=${ret_code}" | mail -s "uncompress job failed." ${MAIL_LIST}
         exit 1
     fi
 }
@@ -150,8 +151,8 @@ ${HADOOP_HOME}/bin/hadoop jar ${HADOOP_HOME}/contrib/streaming/hadoop-streaming-
     -cmdenv zip_output_path=${OUTPUT_PATH}
 ret_code=$?
 if [ ${ret_code} -ne 0 ];then
-    echo "`date '+%Y-%m-%d %H:%M:%S'` run job failed."
-    echo "`date '+%Y-%m-%d %H:%M:%S'` run job failed. retcode=${ret_code}" | mail -s "run job failed." ${MAIL_LIST}
+    echo "`date '+%Y-%m-%d %H:%M:%S'` uncompress job failed."
+    echo "`date '+%Y-%m-%d %H:%M:%S'` uncompress job failed. retcode=${ret_code}" | mail -s "uncompress job failed." ${MAIL_LIST}
     exit 1
 else
     echo "`date '+%Y-%m-%d %H:%M:%S'` run job successful"
