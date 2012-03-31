@@ -160,8 +160,7 @@ recursive_list ${INPUT_PATH}
 
 # start job
 echo "`date '+%Y-%m-%d %H:%M:%S'` submit mapreduce job"
-#${HADOOP_HOME}/bin/hadoop jar ${HADOOP_HOME}/contrib/streaming/hadoop-streaming-v2.1-0.20.205.0.jar \
-${HADOOP_BIN} ${HADOOP_HOME}/contrib/streaming/hadoop-streaming-v2.1-0.20.205.0.jar \
+${HADOOP_HOME}/bin/hadoop jar ${HADOOP_HOME}/contrib/streaming/hadoop-streaming-v2.1-0.20.205.0.jar \
     -D mapred.job.name="distribute_compress_byfile-${TODAY}" \
     -D mapred.job.map.capacity=${MAP_TASK_CAPACITY} \
     -D mapred.job.priority=${JOB_PRIORITY} \
