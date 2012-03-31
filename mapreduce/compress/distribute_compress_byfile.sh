@@ -48,7 +48,7 @@ function usage() {
     echo "./distribute_compress_byfile.sh <input path> <output path> <delete source> [compress format] [mapred job capacity] [mapred job priority]" >&2
     echo "input path:              input path ready going to be compress" >&2
     echo "output path:             where the compressed file storage" >&2
-    echo "delete source:           delete input soure where compress success" >&2
+    echo "delete source:           delete input soure where compress success. false/true" >&2
     echo "compress format:         gzip. gzip(default)" >&2
     echo "mapred job capacity:     mapred job capacity. 3 (default)" >&2
     echo "mapred job priority:     mapred job priority. VERY_LOW (default)" >&2
@@ -121,6 +121,8 @@ function delete_source() {
         echo "delete input source: ${INPUT_PATH} starts..."
         ${HADOOP_BIN} fs -rmr ${INPUT_PATH}
         echo "delete input source: ${INPUT_PATH} success"
+    else
+        echo "skip delete input source."
     fi
 }
 
@@ -134,7 +136,11 @@ INPUT_PATH=$1
 # the path for compress output
 OUTPUT_PATH=$2
 # delete input source
-DELETE_SOURCE=#3
+DELETE_SOURCE=$3
+if [ $DELETE_SOURCE != "false" ] && [ $DELETE_SOURCE != "true" ];then
+    echo "delete source parameter error."
+    exit 1
+fi
 
 if [ ! -z $4 ];then
     COMPRESS_FORMAT=$4
