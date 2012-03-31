@@ -85,7 +85,7 @@ function recursive_list() {
 
 function check_result() {
     INPUT_FILE_NUM=$(cat $LOCAL_LSR_TMP_FILE | wc -l)
-    OUTPUT_FILE_NUM=$(${HADOOP_BIN} fs -lsr ${OUTPUT_PATH} | grep '^\-r' | wc -l)
+    OUTPUT_FILE_NUM=$(${HADOOP_HOME}/bin/hadoop fs -lsr ${OUTPUT_PATH} | grep '^\-r' | wc -l)
     echo "input file num: ${INPUT_FILE_NUM}, output file num: ${OUTPUT_FILE_NUM}"
     if [ ${INPUT_FILE_NUM} -ne ${OUTPUT_FILE_NUM} ];then
         echo "[FATAL] input file num not equals output file num."
@@ -93,7 +93,7 @@ function check_result() {
         exit 1
     fi
 
-    SUCCESS_TASK_NUM=$(${HADOOP_BIN} fs -cat ${MAPRED_OUTPUT_DIR}/part-* | grep 'SUCCESS' | wc -l)
+    SUCCESS_TASK_NUM=$(${HADOOP_HOME}/bin/hadoop fs -cat ${MAPRED_OUTPUT_DIR}/part-* | grep 'SUCCESS' | wc -l)
     echo "expected sucess num: ${INPUT_FILE_NUM} actual success num: ${SUCCESS_TASK_NUM}"
     if [ ${SUCCESS_TASK_NUM} -ne ${INPUT_FILE_NUM} ];then
         echo "[FATAL] some task failed, please check ${MAPRED_OUTPUT_DIR}"
@@ -136,7 +136,6 @@ recursive_list ${INPUT_PATH}
 # start job
 echo "`date '+%Y-%m-%d %H:%M:%S'` submit mapreduce job"
 ${HADOOP_HOME}/bin/hadoop jar ${HADOOP_HOME}/contrib/streaming/hadoop-streaming-v2.1-0.20.205.0.jar \
-${HADOOP_BIN} jar ${HADOOP_HOME}/contrib/streaming/hadoop-streaming-v2.1-0.20.205.0.jar \
     -D mapred.job.name="distribute_uncompress_byfile-${TODAY}" \
     -D mapred.job.map.capacity=${MAP_TASK_CAPACITY} \
     -D mapred.job.priority=${JOB_PRIORITY} \

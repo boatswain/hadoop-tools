@@ -99,7 +99,7 @@ function check_compress_format() {
 
 function check_result() {
     INPUT_FILE_NUM=$(cat $LOCAL_LSR_TMP_FILE | wc -l)
-    OUTPUT_FILE_NUM=$(${HADOOP_BIN} fs -lsr ${OUTPUT_PATH} | grep '^\-r' | wc -l)
+    OUTPUT_FILE_NUM=$(${HADOOP_HOME}/bin/hadoop fs -lsr ${OUTPUT_PATH} | grep '^\-r' | wc -l)
     echo "input file num: ${INPUT_FILE_NUM}, output file num: ${OUTPUT_FILE_NUM}"
     if [ ${INPUT_FILE_NUM} -ne ${OUTPUT_FILE_NUM} ];then
         echo "[FATAL] input file num not equals output file num."
@@ -107,7 +107,7 @@ function check_result() {
         exit 1
     fi
 
-    SUCCESS_TASK_NUM=$(${HADOOP_BIN} fs -cat ${MAPRED_OUTPUT_DIR}/part-* | grep 'SUCCESS' | wc -l)
+    SUCCESS_TASK_NUM=$(${HADOOP_HOME}/bin/hadoop fs -cat ${MAPRED_OUTPUT_DIR}/part-* | grep 'SUCCESS' | wc -l)
     echo "expected sucess num: ${INPUT_FILE_NUM} actual success num: ${SUCCESS_TASK_NUM}"
     if [ ${SUCCESS_TASK_NUM} -ne ${INPUT_FILE_NUM} ];then
         echo "[FATAL] some task failed, please check ${MAPRED_OUTPUT_DIR}"
