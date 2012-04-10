@@ -127,10 +127,14 @@ if [ ! -z $5 ];then
     JOB_PRIORITY=$5
 fi
 
+echo "start uncompress, src: ${INPUT_PATH} dst: ${OUTPUT_PATH}"
+
 # check hdfs input/output path
+echo "check input/output path"
 check_input_output ${INPUT_PATH} ${OUTPUT_PATH}
 
 # list input directory
+echo "recursive list input path"
 recursive_list ${INPUT_PATH}
 
 # start job

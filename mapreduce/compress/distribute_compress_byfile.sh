@@ -158,10 +158,14 @@ if [ ! -z $6 ];then
     JOB_PRIORITY=$6
 fi
 
+echo "start compress, src: ${INPUT_PATH} dst: ${OUTPUT_PATH} delete_source: ${DELETE_SOURCE}"
+
 # check hdfs input/output path
+echo "check input/output path"
 check_input_output ${INPUT_PATH} ${OUTPUT_PATH}
 
 # list input directory
+echo "recursive list input path"
 recursive_list ${INPUT_PATH}
 
 # start job
