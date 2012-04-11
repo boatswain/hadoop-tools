@@ -26,21 +26,34 @@ do
     # get file sub path of file_path
     file_sub_path=${file_path:zip_input_path_len}
     compress_output_path="${zip_output_path}/${file_sub_path}.gz"
-    echo "compress_output_path: $compress_output_path" >&2
+    compress_output_path_tmp="${zip_output_path}/${file_sub_path}.gz.${RANDOM}.tmp~~"
+    echo "compress_output_path: ${compress_output_path}" >&2
+    echo "compress_output_path_tmp: ${compress_output_path_tmp}" >&2
     ${HADOOP_BIN} fs -test -e ${compress_output_path}
     if [ $? -eq 0 ];then
-        echo "${compress_output_path} already exists, detele it."
-        ${HADOOP_BIN} fs -rm ${compress_output_path}
+        echo "${compress_output_path} already exists, exit." >&2
+        echo "SUCCESS"
+        exit 0
+        # when dst file already has existsed, we think thas is successful.???
+        # exit 1
     fi
-    ${HADOOP_BIN} fs -cat ${file_path} | gzip | ${HADOOP_BIN} fs -put - ${compress_output_path}
+    ${HADOOP_BIN} fs -cat ${file_path} | gzip | ${HADOOP_BIN} fs -put - ${compress_output_path_tmp} >&2
     pipe_status=${PIPESTATUS[*]}
+    echo "pipe_status: $pipe_status" >&2
     if [[ "0 0 0" == ${pipe_status} ]];then
-        echo "pipe_status: $pipe_status" >&2
+        echo "compress and write tmp file success." >&2
+        ${HADOOP_BIN} fs -mv ${compress_output_path_tmp} ${compress_output_path} >&2
+        mv_ret=$?
+        if [ ${mv_ret} -ne 0 ];then
+            echo "mv ${compress_output_path_tmp} to ${compress_output_path} failed, mv_ret: ${mv_ret}" >&2
+            echo "FAILED"
+            exit 1
+        fi
+        echo "mv ${compress_output_path_tmp} to ${compress_output_path} success." >&2
         echo "compress and write success." >&2
         echo "SUCCESS"
     else
-        echo "pipe_status: $pipe_status" >&2
-        echo "compress and write failed." >&2
+        echo "compress and write tmp file failed." >&2
         echo "FAILED"
         exit 1
     fi

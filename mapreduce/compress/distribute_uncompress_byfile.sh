@@ -30,14 +30,25 @@
 # Site: 
 #
 
-export JAVA_HOME="$HOME/hadoop-v2/java6"
-MAIL_LIST="fengzanfeng@wandoujia.com,zhoupo@wandoujia.com"
-HADOOP_HOME="$HOME/hadoop-v2/hadoop"
-HADOOP_BIN="${HADOOP_HOME}/bin/hadoop --config ./core-site.xml"
+source ../utils/init.sh
+source ../utils/logger.sh
+source ../utils/mailer.sh
+
+LOG_INIT "distribute_uncompress_byfile"
+
+source ./base.sh
+
+# the hdfs path for write lsr list file.
 MAPRED_JOB_TMP_DIR="/tmp/uncompress_tmp/"
+
+# the local path for wrrite lsr list file.
 LOCAL_LSR_TMP_FILE="file_list_${RANDOM}_`date +%Y%m%d%H%M%S`"
+
+# the hdfs for write mapred task status.
 MAPRED_OUTPUT_DIR="${MAPRED_JOB_TMP_DIR}/${LOCAL_LSR_TMP_FILE}_output"
-TODAY=`date "+%Y-%m-%d"`
+
+# mapred job name
+JOB_NAME="distribute_uncompress_byfile-$(date '+%Y%m%d%H%M%S')"
 
 function usage() {
     echo ""
@@ -49,60 +60,7 @@ function usage() {
     exit 1
 }
 
-# para1: hdfs input path    para2: hdfs output path
-function check_input_output() {
-    ${HADOOP_BIN} fs -test -e $1
-    if [ $? -ne 0 ];then
-        echo "[FATAL] input path $1 not exists, exit..." >&2
-        exit 1
-    fi
-
-    ${HADOOP_BIN} fs -test -e $2
-    if [ $? -eq 0 ];then
-        echo "[FATAL] output path $2 shouldn't be exists, exit..." >&2
-        exit 1
-    fi
-}
-
-# para1: hdfs input path
-function recursive_list() {
-    ${HADOOP_BIN} fs -lsr $1 | grep '^\-r' | awk '{print $5,$8}' >$LOCAL_LSR_TMP_FILE
-    if [ $? -ne 0 ];then
-        echo "recursive list input path $1 failed, exit..." >&2
-        exit 1
-    fi
-    FILE_NUM=$(cat $LOCAL_LSR_TMP_FILE | wc -l)
-    if [ $FILE_NUM -le 0 ];then
-        echo "recursive list input file num is 0, exit..." >&2
-        exit 1
-    fi
-    ${HADOOP_BIN} fs -put $LOCAL_LSR_TMP_FILE $MAPRED_JOB_TMP_DIR/$LOCAL_LSR_TMP_FILE
-    if [ $? -ne 0 ];then
-        echo "write $LOCAL_LSR_TMP_FILE to $MAPRED_JOB_TMP_DIR failed." >&2
-        exit 1
-    fi
-}
-
-function check_result() {
-    INPUT_FILE_NUM=$(cat $LOCAL_LSR_TMP_FILE | wc -l)
-    OUTPUT_FILE_NUM=$(${HADOOP_HOME}/bin/hadoop fs -lsr ${OUTPUT_PATH} | grep '^\-r' | wc -l)
-    echo "input file num: ${INPUT_FILE_NUM}, output file num: ${OUTPUT_FILE_NUM}"
-    if [ ${INPUT_FILE_NUM} -ne ${OUTPUT_FILE_NUM} ];then
-        echo "[FATAL] input file num not equals output file num."
-        echo "`date '+%Y-%m-%d %H:%M:%S'` uncompress job failed. retcode=${ret_code}" | mail -s "uncompress job failed." ${MAIL_LIST}
-        exit 1
-    fi
-
-    SUCCESS_TASK_NUM=$(${HADOOP_HOME}/bin/hadoop fs -cat ${MAPRED_OUTPUT_DIR}/part-* | grep 'SUCCESS' | wc -l)
-    echo "expected sucess num: ${INPUT_FILE_NUM} actual success num: ${SUCCESS_TASK_NUM}"
-    if [ ${SUCCESS_TASK_NUM} -ne ${INPUT_FILE_NUM} ];then
-        echo "[FATAL] some task failed, please check ${MAPRED_OUTPUT_DIR}"
-        echo "`date '+%Y-%m-%d %H:%M:%S'` uncompress job failed. retcode=${ret_code}" | mail -s "uncompress job failed." ${MAIL_LIST}
-        exit 1
-    fi
-}
-
-# check parameter
+# check main parameter
 if [ $# -lt 2 ];then
     usage
 fi
@@ -127,23 +85,24 @@ if [ ! -z $5 ];then
     JOB_PRIORITY=$5
 fi
 
-echo "start uncompress, src: ${INPUT_PATH} dst: ${OUTPUT_PATH}"
+LOG_INFO "distribute uncompress" "distribute uncompress starts..."
+LOG_INFO "distribute uncompress" "jobname: $JOB_NAME"
+LOG_INFO "distribute uncompress" "local lsr file: $LOCAL_LSR_TMP_FILE"
 
 # check hdfs input/output path
-echo "check input/output path"
-check_input_output ${INPUT_PATH} ${OUTPUT_PATH}
+check_mapred_input_output "${JOB_NAME}" ${INPUT_PATH} ${OUTPUT_PATH}
 
-# list input directory
-echo "recursive list input path"
-recursive_list ${INPUT_PATH}
+# recursive list hdfs input path and storage file list to local, then upload to hdfs
+recursive_list_hdfs_path ${INPUT_PATH} ${LOCAL_LSR_TMP_FILE} ${MAPRED_JOB_TMP_DIR}
 
 # start job
-echo "`date '+%Y-%m-%d %H:%M:%S'` submit mapreduce job"
+LOG_INFO "submit mapreduce job" "submit mapreduce job starts..."
 ${HADOOP_HOME}/bin/hadoop jar ${HADOOP_HOME}/contrib/streaming/hadoop-streaming-v2.1-0.20.205.0.jar \
-    -D mapred.job.name="distribute_uncompress_byfile-${TODAY}" \
+    -D mapred.job.name="${JOB_NAME}" \
     -D mapred.job.map.capacity=${MAP_TASK_CAPACITY} \
     -D mapred.job.priority=${JOB_PRIORITY} \
     -D mapred.line.input.format.linespermap=1 \
+    -D mapred.map.tasks.speculative.execution=false \
     -input "${MAPRED_JOB_TMP_DIR}/${LOCAL_LSR_TMP_FILE}" \
     -output "${MAPRED_OUTPUT_DIR}" \
     -inputformat "org.apache.hadoop.mapred.lib.NLineInputFormat" \
@@ -153,16 +112,17 @@ ${HADOOP_HOME}/bin/hadoop jar ${HADOOP_HOME}/contrib/streaming/hadoop-streaming-
     -file "core-site.xml" \
     -cmdenv zip_input_path=${INPUT_PATH} \
     -cmdenv zip_output_path=${OUTPUT_PATH}
+
 ret_code=$?
 if [ ${ret_code} -ne 0 ];then
-    echo "`date '+%Y-%m-%d %H:%M:%S'` uncompress job failed."
-    echo "`date '+%Y-%m-%d %H:%M:%S'` uncompress job failed. retcode=${ret_code}" | mail -s "uncompress job failed." ${MAIL_LIST}
+    LOG_FATAL "distribute uncompress" "${JOB_NAME} uncompress job failed."
+    SEND_MAIL "distribute uncompress failed" "${JOB_NAME} uncompress job failed. retcode=${ret_code}" ${MAIL_LIST}
+    LOG_SEPERATOR
     exit 1
 else
-    echo "`date '+%Y-%m-%d %H:%M:%S'` run job successful"
+    LOG_INFO "distribute uncompress" "${JOB_NAME} uncompress job success."
 fi
 
 # check result
-check_result
-
+check_mapred_result ${JOB_NAME} ${LOCAL_LSR_TMP_FILE} ${OUTPUT_PATH} ${MAPRED_OUTPUT_DIR}
 
