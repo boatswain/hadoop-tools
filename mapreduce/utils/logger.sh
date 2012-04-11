@@ -36,35 +36,35 @@ function LOG_INIT() {
 # para1: log header
 # para2: log body
 function LOG_DEBUG() {
-    echo "$(date '+%Y-%m-%d %H:%M:%S') [DEBUG] ${1} ${2}" >>${_LOGGER_LOG_PATH}
+    echo "$(date '+%Y-%m-%d %H:%M:%S') [DEBUG] [${1}] ${2}" >>${_LOGGER_LOG_PATH}
 }
 
 
 # para1: log header
 # para2: log body
 function LOG_INFO() {
-    echo "$(date '+%Y-%m-%d %H:%M:%S') [INFO] ${1} ${2}" >>${_LOGGER_LOG_PATH}
+    echo "$(date '+%Y-%m-%d %H:%M:%S') [INFO] [${1}] ${2}" >>${_LOGGER_LOG_PATH}
 }
 
 
 # para1: log header
 # para2: log body
 function LOG_ERROR() {
-    echo "$(date '+%Y-%m-%d %H:%M:%S') [ERROR] ${1} ${2}" >>${_LOGGER_LOG_PATH}
+    echo "$(date '+%Y-%m-%d %H:%M:%S') [ERROR] [${1}] ${2}" >>${_LOGGER_LOG_PATH}
 }
 
 
 # para1: log header
 # para2: log body
 function LOG_FATAL() {
-    echo "$(date '+%Y-%m-%d %H:%M:%S') [FATAL] ${1} ${2}" >>${_LOGGER_LOG_PATH}
+    echo "$(date '+%Y-%m-%d %H:%M:%S') [FATAL] [${1}] ${2}" >>${_LOGGER_LOG_PATH}
 }
 
 
 # para1: log header
 # para2: log body
 function LOG_CRITIC() {
-    echo "$(date '+%Y-%m-%d %H:%M:%S') [CRITIC] ${1} ${2}" >>${_LOGGER_LOG_PATH}
+    echo "$(date '+%Y-%m-%d %H:%M:%S') [CRITIC] [${1}] ${2}" >>${_LOGGER_LOG_PATH}
 }
 
 function LOG_SEPERATOR() {

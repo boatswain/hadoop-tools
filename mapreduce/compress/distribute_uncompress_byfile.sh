@@ -125,4 +125,4 @@ fi
 
 # check result
 check_mapred_result ${JOB_NAME} ${LOCAL_LSR_TMP_FILE} ${OUTPUT_PATH} ${MAPRED_OUTPUT_DIR}
-
+LOG_SEPERATOR

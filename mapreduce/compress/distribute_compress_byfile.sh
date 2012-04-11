@@ -167,3 +167,4 @@ check_mapred_result ${JOB_NAME} ${LOCAL_LSR_TMP_FILE} ${OUTPUT_PATH} ${MAPRED_OU
 
 # delete input source when compress successful.
 delete_source
+LOG_SEPERATOR
