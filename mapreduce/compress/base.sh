@@ -12,6 +12,8 @@ function check_mapred_input_output() {
     LOG_INFO "CHECK MAPRED INPUT OUTPUT" "input: $2 output: $3"
     if [ $# -ne 3 ];then
         LOG_FATAL "CHECK MAPRED INPUT OUTPUT" "parameter error."
+        LOG_SEPERATOR
+        exit 1
     fi
     ${HADOOP_BIN} fs -test -e $2
     if [ $? -ne 0 ];then
