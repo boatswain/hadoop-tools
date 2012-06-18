@@ -1,7 +1,7 @@
 #!/bin/bash
 
 MAIL_LIST="fengzanfeng@wandoujia.com,zhoupo@wandoujia.com"
-HADOOP_BIN="${HADOOP_HOME}/bin/hadoop --config ./core-site.xml"
+HADOOP_BIN="${HADOOP_HOME}/bin/hadoop --config ."
 TODAY=`date "+%Y-%m-%d"`
 
 # para1: job name, only for logger
