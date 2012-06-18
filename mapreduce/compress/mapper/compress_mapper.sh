@@ -2,7 +2,7 @@
 
 export JAVA_HOME="/home/mapred/hadoop-v2/java6"
 HADOOP_HOME="/home/mapred/hadoop-v2/hadoop"
-HADOOP_BIN="${HADOOP_HOME}/bin/hadoop --config ./core-site.xml"
+HADOOP_BIN="${HADOOP_HOME}/bin/hadoop --config ."
 
 if [ -z $zip_input_path ] || [ -z $zip_output_path ] || [ -z $compress_type ];then
     echo "read zip_input_path/zip_output_path/compress_type cmdenv failed." >&2
