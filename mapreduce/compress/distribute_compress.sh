@@ -160,7 +160,7 @@ recursive_list_hdfs_path "${INPUT_PATH}" "${LOCAL_LSR_TMP_FILE}" "${MAPRED_JOB_T
 
 # start job
 LOG_INFO "submit mapreduce job" "distribute compress mapreduce job starts..."
-${HADOOP_HOME}/bin/hadoop jar ${HADOOP_HOME}/contrib/streaming/hadoop-streaming-v2.1-0.20.205.0.jar \
+${HADOOP_HOME}/bin/hadoop jar ${HADOOP_HOME}/contrib/streaming/hadoop-streaming-1.0.2-w1.2.0.jar \
     -D mapred.job.name="${JOB_NAME}" \
     -D mapred.job.map.capacity=${MAP_TASK_CAPACITY} \
     -D mapred.job.priority=${JOB_PRIORITY} \
