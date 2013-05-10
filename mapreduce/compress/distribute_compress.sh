@@ -169,7 +169,7 @@ ${HADOOP_HOME}/bin/hadoop jar ${HADOOP_HOME}/contrib/streaming/hadoop-streaming-
     -input "${MAPRED_JOB_TMP_DIR}/${LOCAL_LSR_TMP_FILE}" \
     -output "${MAPRED_OUTPUT_DIR}" \
     -inputformat "org.apache.hadoop.mapred.lib.NLineInputFormat" \
-    -mapper "./compress_mapper.sh" \
+    -mapper "bash compress_mapper.sh" \
     -reducer "NONE" \
     -file "mapper/compress_mapper.sh" \
     -file "core-site.xml" \

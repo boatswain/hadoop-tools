@@ -57,6 +57,7 @@ function compress() {
         pipe_status=${PIPESTATUS[*]}
         echo "compress pipe_status: $pipe_status" >&2
         if [[ "0 0 0" != ${pipe_status} ]];then
+			${HADOOP_BIN} fs -rmr ${compress_output_path_tmp}
             has_error=1
         fi
     else
@@ -76,6 +77,7 @@ function compress() {
         if [ ${mv_ret} -ne 0 ];then
             echo "mv ${compress_output_path_tmp} to ${compress_output_path} failed, mv_ret: ${mv_ret}" >&2
             echo "FAILED"
+			${HADOOP_BIN} fs -rmr ${compress_output_path_tmp}
             exit 1
         fi
         echo "mv ${compress_output_path_tmp} to ${compress_output_path} success." >&2

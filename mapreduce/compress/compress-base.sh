@@ -1,6 +1,6 @@
 #!/bin/bash
 
-MAIL_LIST="fengzanfeng@wandoujia.com,zhoupo@wandoujia.com"
+MAIL_LIST="fengzanfeng@wandoujia.com,zhoupo@wandoujia.com,wanghai@wandoujia.com,wangyuzhou@wandoujia.com"
 HADOOP_BIN="${HADOOP_HOME}/bin/hadoop --config ."
 TODAY=`date "+%Y-%m-%d"`
 
@@ -111,6 +111,7 @@ function check_mapred_result() {
     if [ $? -eq 0 ];then
         LOG_INFO "CHECK MAPRED RESULT" "$1 some tmp files exists in compressed path: ${3}, maybe you can delete all tmp files."
         SEND_MAIL "MAPRED RESULT NOTICE" "$1 some tmp files exists in $3" $MAIL_LIST
+        exit 1
     fi
 
 }

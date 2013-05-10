@@ -83,6 +83,7 @@ function uncompress() {
         echo "uncompress and write success." >&2
         echo "SUCCESS"
     else
+		${HADOOP_BIN} fs -rmr ${uncompress_output_path_tmp} >&2
         echo "uncompress and write failed." >&2
         echo "FAILED"
         exit 1
